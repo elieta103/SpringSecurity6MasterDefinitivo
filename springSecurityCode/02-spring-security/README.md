@@ -18,6 +18,11 @@
           - User implements UserDetails
           - Role, RolePermission inicialmente con enum
 
+- HttpSecurityConfig
+  - Configuracion de Filtros
+  - EndPoints Seguros y publicos
+  - Seteo de AuthenticationProvider a utilizar
+
 ### Endpoints
 - Genera un nuevo usuario y su token.
 - POST http://localhost:9191/api/v1/customers
