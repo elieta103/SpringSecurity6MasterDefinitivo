@@ -1,13 +1,13 @@
 ### 02 Agregando  AuthenticationManager
 - Proceso de Logeo
-- Crear usuario
+- Crear usuario con token
 - Genera token para usuario válido
 - Valida un token generado
 
 ### Libreria SpringSecurity
 - spring-boot-starter-security
 
-### Que incluye el código de la sección
+### Jerarquia Objetos
 - SecurityBeansInjector, contiene los @Beans que se utilzan para el contexto de seguridad
 - AuthenticationConfiguration
   - AuthenticationManager
@@ -17,10 +17,6 @@
         - UserRepository
           - User implements UserDetails
           - Role, RolePermission inicialmente con enum
-
-
-### Firmar con RSA el secret del token
-
 
 ### Endpoints
 - Genera un nuevo usuario y su token.
@@ -58,7 +54,7 @@
 }
 ```
 
-- Con un token generado, validar que sea valido
+- Con un token generado, validar que sea correcto
 - GET http://localhost:9191/api/v1/auth/validate-token?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsbWFycXVleiIsImlhdCI6MTcwODMwNjY3MSwiZXhwIjoxNzA4MzA4NDcxLCJyb2xlIjoiUk9MRV9DVVNUT01FUiIsIm5hbWUiOiJsdWlzIG3DoXJxdWV6IiwiYXV0aG9yaXRpZXMiOlt7ImF1dGhvcml0eSI6IlJFQURfTVlfUFJPRklMRSJ9XX0.f5ZLwd50wlcXTJp7daLDllvCDCpBKLOLTjvaGkFy61U
 - Response
 ```
