@@ -1,4 +1,4 @@
-### 04 Authorize HTTP Request: Autorización basada en coincidencia de solicitudes HTTP
+### 04 Authorize HTTP Request: Autorización basada en coincidencia de solicitudes HTTP (Roles & Permisos)
 - Authorities -> GrantedAuthorities  se insertan al objeto de Authentication
   - Representan los permisos otorgados al principal/username
 - Spring Security utliza interceptores para controlar el acceso a objetos
