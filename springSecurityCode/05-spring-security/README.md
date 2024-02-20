@@ -1,47 +1,30 @@
-### 04 Authorize HTTP Request: Autorización basada en coincidencia de solicitudes HTTP (Roles & Permisos)
-- Authorities -> GrantedAuthorities  se insertan al objeto de Authentication
-  - Representan los permisos otorgados al principal/username
-- Spring Security utliza interceptores para controlar el acceso a objetos
-- AuthorizationManager llamados por los componentes de authorization
-- AuthorizationManager tiene 2 metodos : check() y verify()
-- Tipos de autorizaciones
-  - Coincidencia de solicitudes HTTP
-    - Matching Using Ant
-    - Matching Using Regular Expressions
-    - By HTTP Method
-    - By Dispatcher Type
-    - Matcher Customizado
-  - Asegurar metodos de controladores y servicios
-
-
-- Cosa extraña en Spring, en UserDetails no hay metodo para obtener Roles
-- Se podría decir que trabaja en base a permisos
-- Por eso se agrega el rol, como si fuera un authority, en el User.
-
+### 05 Method Security: Autorización basada en aseguramiento de métodos Controller
+- Se requiere habilitar:
 ```
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        if(role == null) return null;
-        if(role.getPermissions() == null) return null;
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
+public class HttpSecurityConfig {...}
+```
+- Cuando se asegura metodos, y no se tiene permitido acceder al recurso, manda excepcion
+- es correcto, porque la autorizacion funciona en distintas etapas
+```
+{   "backedMessage": "Access Denied",
+    "message": "Error interno en el servidor, vuelva a intentarlo",
+    "httpCode": 500,
+    "time": "2024-02-20T14:05:58.9111792"
+}
+```
 
-        List<SimpleGrantedAuthority> authorities = role.getPermissions().stream()
-                .map(item -> new SimpleGrantedAuthority(item.name()))
-                .collect(Collectors.toList());
-        // hasRole llama a hasAuthority pero le concatena al inicio ROLE_
-        // Nos da como resultado ROLE_ADMINISTRADOR, por ende el SimpleGrantedAuthority se debe crear como: "ROLE_" + this.role
-        // authorities": [{"authority": "READ_ALL_PRODUCTS"},{"authority": "READ_ONE_PRODUCT"},...,]
-        authorities.add(new SimpleGrantedAuthority("ROLE_" + this.role.name()));
-        // authorities": [{"authority": "READ_ALL_PRODUCTS"},{"authority": "READ_ONE_PRODUCT"},...,{"authority": "ROLE_ADMINISTRATOR"}]
-        // Si no se agrega linea 42 no permite el acceso
-        return authorities;
+- Se agregan en los metodos del controller, por ejemplo :
+```
+    //@PreAuthorize("hasAnyRole('ADMINISTRATOR','ASSISTANT_ADMINISTRATOR')")
+    @PreAuthorize("hasAuthority('UPDATE_ONE_CATEGORY')")
+    @PutMapping("/{categoryId}")
+    public ResponseEntity<Category> updateOneById(@PathVariable Long categoryId, @RequestBody @Valid SaveCategory saveCategory){
+        Category category = categoryService.updateOneById(categoryId, saveCategory);
+        return ResponseEntity.ok(category);
     }
-```
-- Se puede cambiar entre implementaciones con hasAutority() o hasRole()
-```
- .authorizeHttpRequests( authReqConfig -> {
-                    buildRequestMatchersAuthorities(authReqConfig);
-                    //buildRequestMatchersRoles(authReqConfig);
-                } )
 ```
 
 
@@ -70,7 +53,7 @@
 
 - Genera un nuevo usuario y su token.
 - POST http://localhost:9191/api/v1/customers
-- Request 
+- Request
 ```
 {  "username":"eliel",
    "name": "eliel herrera",
