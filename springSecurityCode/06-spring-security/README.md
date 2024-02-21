@@ -1,4 +1,49 @@
-### 05 Method Security: Autorización basada en aseguramiento de métodos Controller
+### 06 Method Security: Autorización basada en aseguramiento de métodos Services & Repository, permitAll denyAll.
+
+- Quitar @PreAuthorize("hasAuthority('READ_ALL_PRODUCTS')") del metodo :
+```
+@GetMapping
+public ResponseEntity<Page<Product>> findAll(Pageable pageable){...}
+```
+- Y Se agrega la anotacion en (Uno a la vez) :
+- ProductService     => @PreAuthorize("hasAuthority('READ_ALL_PRODUCTS')")
+- ProductServiceImpl => @PreAuthorize("hasAuthority('READ_ALL_PRODUCTS')")
+- ProductRepository metodo sobreescrito  => @PreAuthorize("hasAuthority('READ_ALL_PRODUCTS')")
+
+- Hasta este punto solo los matchers publicos funcionan con el HttpSecurity>Config y los
+- protegidos con las anotaciones.
+- En la siguiente seccion se comentan los matchers y toda la autorizacion queda con anotaciones
+
+### permitAll denyAll
+- Comentar :
+```
+                /*.authorizeHttpRequests( authReqConfig -> {
+                    buildRequestMatchersMethods(authReqConfig);
+                } )*/
+```
+
+- Agregar :
+```
+    @PreAuthorize("permitAll")
+    @GetMapping("/validate-token")
+    public ResponseEntity<Boolean> validate(@RequestParam String jwt){...}
+    
+    @PreAuthorize("permitAll")
+    @PostMapping("/authenticate")
+    public ResponseEntity<AuthenticationResponse> authenticate(
+            @RequestBody @Valid AuthenticationRequest authenticationRequest){...}
+    
+    @PreAuthorize("permitAll")
+    @PostMapping
+    public ResponseEntity<RegisteredUser> registerOne(@RequestBody @Valid SaveUser newUser){...}
+
+    @PreAuthorize("denyAll")
+    @GetMapping
+    public String getMessage(){...}
+            
+```
+
+
 - Se requiere habilitar:
 ```
 @Configuration
@@ -15,18 +60,6 @@ public class HttpSecurityConfig {...}
     "time": "2024-02-20T14:05:58.9111792"
 }
 ```
-
-- Se agregan en los metodos del controller, por ejemplo :
-```
-    //@PreAuthorize("hasAnyRole('ADMINISTRATOR','ASSISTANT_ADMINISTRATOR')")
-    @PreAuthorize("hasAuthority('UPDATE_ONE_CATEGORY')")
-    @PutMapping("/{categoryId}")
-    public ResponseEntity<Category> updateOneById(@PathVariable Long categoryId, @RequestBody @Valid SaveCategory saveCategory){
-        Category category = categoryService.updateOneById(categoryId, saveCategory);
-        return ResponseEntity.ok(category);
-    }
-```
-
 
 ### Endpoints
 - Usuario logeado
