@@ -1,66 +1,50 @@
-### 08 Handling Exception, AccessDeniedException, AuthenticationCredentialsNotFoundException
-- Para probar cuando no se envía token y cuando no hay permisos
-- El enfoque del capitulo 07 no diferencia entre las excepciones
-  - AccessDeniedException (No tienes permisos, no authorizado)
-  - AuthenticationCredentialsNotFoundException (Cuando no se envía token)
+### 09 Proceso de autorización personalizados, CustomAuthorizationManager
 
-- Deshabilitar autorizacion basada en metodos
-```
-//@EnableMethodSecurity(prePostEnabled = true)
-```
+- Crear estructura de entities (User, Operation, Module, Role, Permission)
+- Crear estructura de repositories
+- Crear script con datos
 
-- Se debe hacer con el metodo de coincidencia de solicitudes HTTP
+- Modificar la implementacion
 ```
-        .authorizeHttpRequests( authReqConfig -> {
-                    buildRequestMatchers(authReqConfig);
+    @Autowired
+    private AuthorizationManager<RequestAuthorizationContext> authorizationManager;
+    
+     .authorizeHttpRequests( authReqConfig -> {
+                    authReqConfig.anyRequest().access(authorizationManager);
                 } )
 ```
-- Agregar el paquete config.security.handler, con implementaciones para:
-  - CustomerAuthenticationEntryPoint 401
-  - CustomerAccessDeniedHandler 403
 
-- Se agrega libreria para el manejo de fechas , en ApiError
-```
-    @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
-    private LocalDateTime timestamp;
-
-    <dependency>
-	  <groupId>com.fasterxml.jackson.datatype</groupId>
-	  <artifactId>jackson-datatype-jsr310</artifactId>
-	  <version>2.15.2</version>
-	</dependency>
-```
-
-- Se debe declarar el handler de las excepciones
-```
-    @Autowired private AuthenticationEntryPoint authenticationEntryPoint;
-    @Autowired private AccessDeniedHandler accessDeniedHandler;
-
-     .exceptionHandling( exceptionConfig -> {
-                    exceptionConfig.authenticationEntryPoint(authenticationEntryPoint);
-                    exceptionConfig.accessDeniedHandler(accessDeniedHandler);
-                })   
-```
-
-
-
-### En caso de que se requiera mandar el mismo error para 401 y 403, se debe hacer:
+- La logica de la implementacion esta en:
 ```
 @Component
-public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
-
-    @Autowired
-    private AccessDeniedHandler accessDeniedHandler;
-
-    @Override
-    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
-
-        accessDeniedHandler.handle(request, response, new AccessDeniedException("Access Denied"));
-
-    }
-}
+public class CustomAuthorizationManager implements AuthorizationManager<RequestAuthorizationContext> {...}
 ```
+1. Del request obtiene la URI('/api/v1/products/10/disabled')
+2. Del request extrae el Method (GET, POST, PUT, DELETE)
+3. ¿Es pública?
+- Busca en el Repository de Operaciones todas las publicas y con un stream valida las coincidencias
+- Valida url y method
+- Si lo encuentra(es public) regresa un true y termina.
+4. Si fue privado
+- Buscar que el user que realiza la peticion tenga los permisos correctos
+- Valida url y method
+5. Se devuelve new AuthorizationDecision(isGranted); true or false
 
+
+### De las relaciones
+- @OneToMany, La carga de las relaciones por default es LAZY, NO obtiene objetos relacionados
+- @ManyToOne, La carga de las relaciones por default es EAGER, SI obtiene objetos relacionados
+
+### Para evitar la relacion cliclica
+- Al obtener el profile se hace una relacion ciclica infinita
+- Rol <-> GrantedPermission
+- Devuelve un :  "backendMessage": "Could not write JSON: Infinite recursion (StackOverflowError)"
+- Se agrega  @JsonIgnore a la propiedad permissions del Role, la ignora
+
+### Codigo innecesario
+- De las secciones previas  se agregaba :
+- { "authority": "ROLE_ASSISTANT_ADMINISTRATOR" }
+- Ya no es necesario se puede omitir la linea 44 de la clase User.
 
 ### Endpoints``
 - Usuario logeado
