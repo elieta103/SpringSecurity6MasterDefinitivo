@@ -17,7 +17,7 @@
   Es decir, permite tener solo "Una session/Login" activa, para ello, cuando el usuario
   se logee debe buscar en BD si tiene mas JWT validos, se procede a invalidarlos
   y se deja como válido solo el de la peticion actual. 
-- Esa funcionalidad no esta implementada.
+- Esa funcionalidad no esta implementada. 
 
 
 ### Testing el logout
